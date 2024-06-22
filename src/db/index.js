@@ -12,4 +12,6 @@ const connectDB = async () => {
     }
 }
 
+console.log(`MongoDB URL: ${process.env.MONGODB_URL}/${DB_NAME}`);
+
 export default connectDB
