@@ -4,11 +4,15 @@ import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiRespone } from "../utils/ApiResponse.js";
 
+
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
+
+    // console.log('Generated Access Token:', accessToken); // Add logging
+    // console.log('Generated Refresh Token:', refreshToken); // Add logging
 
     user.refreshToken = refreshToken;
     // save user - dont need to validate
@@ -113,9 +117,9 @@ const loginUser = asyncHandler(async (req, res) => {
   const { email, username, password } = req.body;
 
   // username or email
-  if (!username && !email) {
+  if (!(username || email)) {
     throw new ApiError(400, "email or username is required");
-  }
+  } 
 
   // find the user
   const user = await User.findOne({
@@ -172,8 +176,8 @@ const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: {
-        refreshToken: undefined,
+      $unset: {
+        refreshToken: 1, // this removes the field from document
       },
     },
     {
@@ -188,8 +192,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .clearCookie("acessToken", "", options)
-    .clearCookie("refreshToken", "", options)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
     .json(new ApiRespone(200, {}, "User logged out Successfully"));
 });
 
